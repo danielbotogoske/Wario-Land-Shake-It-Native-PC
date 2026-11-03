@@ -39,7 +39,8 @@ namespace WarioLauncher.UI
             if (_port.Root == null)
             {
                 p.Info(Loc.T("Este lanzador no está junto a las herramientas del port (falta tools/" + Platform.BuildScriptName + "), así que aquí no puede instalar. Descarga el paquete WarioRecomp-<versión> del release de GitHub, descomprímelo y abre el lanzador de dentro.",
-                             "This launcher is not next to the port's tools (tools/" + Platform.BuildScriptName + " is missing), so it cannot install here. Download the WarioRecomp-<version> package from the GitHub release, extract it and open the launcher inside."), WarioTheme.Bad);
+                             "This launcher is not next to the port's tools (tools/" + Platform.BuildScriptName + " is missing), so it cannot install here. Download the WarioRecomp-<version> package from the GitHub release, extract it and open the launcher inside.",
+                             "Este lançador não está junto das ferramentas do port (falta tools/" + Platform.BuildScriptName + "), então não dá para instalar aqui. Baixe o pacote WarioRecomp-<versão> do release do GitHub, extraia e abra o lançador de dentro dele."), WarioTheme.Bad);
                 return p;
             }
 
@@ -110,7 +111,8 @@ namespace WarioLauncher.UI
             if (!File.Exists(DiscTool.NodPath(play)))
             {
                 if (!await Dialogs.Ask(this, Loc.T("Para leer el disco hace falta nodtool (" + Platform.NodVersion + ", unos 3 MB, de github.com/encounter/nod, licencia MIT). ¿Descargarlo ahora?",
-                                                   "Reading the disc needs nodtool (" + Platform.NodVersion + ", about 3 MB, from github.com/encounter/nod, MIT license). Download it now?"))) return false;
+                                                   "Reading the disc needs nodtool (" + Platform.NodVersion + ", about 3 MB, from github.com/encounter/nod, MIT license). Download it now?",
+                                                   "Para ler o disco é preciso o nodtool (" + Platform.NodVersion + ", cerca de 3 MB, de github.com/encounter/nod, licença MIT). Baixar agora?"))) return false;
                 string err = await Dialogs.Progress(this, Loc.T("Descargando nodtool…", "Downloading nodtool…"), async () =>
                 {
                     try { await DiscTool.DownloadNod(play); return null; } catch (Exception ex) { return ex.Message; }
@@ -129,7 +131,8 @@ namespace WarioLauncher.UI
             if (gameId != Port.GameId)
             {
                 await Dialogs.Info(this, Loc.T("Este disco es " + gameId + ". El port es para Wario Land: Shake It! de EE. UU. (" + Port.GameId + ").",
-                                               "This disc is " + gameId + ". The port is for US Wario Land: Shake It! (" + Port.GameId + ")."));
+                                               "This disc is " + gameId + ". The port is for US Wario Land: Shake It! (" + Port.GameId + ").",
+                                               "Este disco é " + gameId + ". O port é para o Wario Land: Shake It! dos EUA (" + Port.GameId + ")."));
                 return false;
             }
 
@@ -139,10 +142,12 @@ namespace WarioLauncher.UI
                 if (!Port.MainDolMatches(data))
                 {
                     await Dialogs.Info(this, Loc.T("La carpeta " + data + " ya tiene otros archivos. Elige otra carpeta de destino.",
-                                                   "The folder " + data + " already has other files. Pick another destination."));
+                                                   "The folder " + data + " already has other files. Pick another destination.",
+                                                   "A pasta " + data + " já tem outros arquivos. Escolha outra pasta de destino."));
                     return false;
                 }
-                await Dialogs.Info(this, Loc.T("El juego ya estaba extraído en " + data + ". Se usará esa carpeta.", "The game was already extracted to " + data + ". That folder will be used."));
+                await Dialogs.Info(this, Loc.T("El juego ya estaba extraído en " + data + ". Se usará esa carpeta.", "The game was already extracted to " + data + ". That folder will be used.",
+                                                   "O jogo já tinha sido extraído em " + data + ". Essa pasta será usada."));
             }
             else
             {
@@ -159,7 +164,8 @@ namespace WarioLauncher.UI
                 }
             }
             Write(t => t.SetString("paths", "dvd_root", data));
-            await Dialogs.Info(this, Loc.T("Juego listo en " + data + ". La imagen original ya no hace falta.", "Game ready in " + data + ". The original image is no longer needed."));
+            await Dialogs.Info(this, Loc.T("Juego listo en " + data + ". La imagen original ya no hace falta.", "Game ready in " + data + ". The original image is no longer needed.",
+                                               "Jogo pronto em " + data + ". A imagem original não é mais necessária."));
             return true;
         }
 
@@ -307,7 +313,8 @@ namespace WarioLauncher.UI
                 catch (Exception ex)
                 {
                     launcherNote = Loc.T("No se pudo actualizar el lanzador (", "Could not update the launcher (") + ex.Message + "). " +
-                                   Loc.T("Puedes bajarlo del release " + _port.LocalField("launcher") + " en GitHub.", "You can download it from the " + _port.LocalField("launcher") + " release on GitHub.");
+                                   Loc.T("Puedes bajarlo del release " + _port.LocalField("launcher") + " en GitHub.", "You can download it from the " + _port.LocalField("launcher") + " release on GitHub.",
+                                                   "Você pode baixá-lo do release " + _port.LocalField("launcher") + " no GitHub.");
                 }
                 return 0;
             });

@@ -109,7 +109,7 @@ namespace WarioLauncher.UI
                 List<string> keys = Bindings.Split(Cfg.GetRaw("keyboard", a.Key) != null ? Cfg.GetString("keyboard", a.Key) : a.KeyboardDefault);
                 string padKey = styleName + "_" + a.Key;
                 List<string> pads = Bindings.Split(Cfg.GetRaw("gamepad", padKey) != null ? Cfg.GetString("gamepad", padKey) : a.PadDefault[style]);
-                string actLabel = Loc.English ? a.En : a.Es;
+                string actLabel = Loc.T(a.Es, a.En);
 
                 var k1 = new KeyCapture(keys.Count > 0 ? keys[0] : "");
                 var k2 = new KeyCapture(keys.Count > 1 ? keys[1] : "");
@@ -129,7 +129,8 @@ namespace WarioLauncher.UI
                     {
                         string owner = KeyOwner(self, name);
                         return owner == null ? null : Loc.T("La tecla " + name + " ya está asignada a «" + owner + "». Bórrala allí primero (clic derecho).",
-                                                            "The " + name + " key is already assigned to “" + owner + "”. Clear it there first (right-click).");
+                                                            "The " + name + " key is already assigned to “" + owner + "”. Clear it there first (right-click).",
+                                                            "A tecla " + name + " já está atribuída a “" + owner + "”. Apague-a lá primeiro (clique com o botão direito).");
                     };
                     self.Changed += MarkConflicts;
                     keyBoxes.Add((self, actLabel));
@@ -172,7 +173,8 @@ namespace WarioLauncher.UI
                             self.SelectedItem = ((IEnumerable<Choice>)self.ItemsSource).FirstOrDefault(c => (string)c.Value == previous);
                             reverting = false;
                             Warn(Loc.T(Bindings.PadLabel(v, style) + " ya está asignado a «" + owner + "». Quítalo allí primero.",
-                                       Bindings.PadLabel(v, style) + " is already assigned to “" + owner + "”. Remove it there first."));
+                                       Bindings.PadLabel(v, style) + " is already assigned to “" + owner + "”. Remove it there first.",
+                                       Bindings.PadLabel(v, style) + " já está atribuído a “" + owner + "”. Remova-o de lá primeiro."));
                             return;
                         }
                         previous = v;

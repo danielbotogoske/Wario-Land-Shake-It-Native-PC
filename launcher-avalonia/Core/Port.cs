@@ -119,6 +119,62 @@ namespace WarioLauncher.Core
             return dir;
         }
 
+        // ---- traduccion al portugues de Brasil del juego ----
+        // El paquete de mensajes (local-assets/ptbr/__PACK__.gfa) sustituye al ingles en
+        // <juego>/files/env/Message/English_USA/; el original se guarda como __PACK__.gfa.bak.
+
+        public string PtBrPack => Root == null ? null : Path.Combine(Root, "local-assets", "ptbr", "__PACK__.gfa");
+        public bool PtBrPackAvailable => PtBrPack != null && File.Exists(PtBrPack);
+
+        private string MessagePack()
+        {
+            string dvd = Config.GetString("paths", "dvd_root", "");
+            return string.IsNullOrWhiteSpace(dvd) ? null : Path.Combine(dvd, "files", "env", "Message", "English_USA", "__PACK__.gfa");
+        }
+
+        public bool PtBrInstalled()
+        {
+            try
+            {
+                string target = MessagePack();
+                if (target == null || !PtBrPackAvailable || !File.Exists(target) || !File.Exists(target + ".bak")) return false;
+                return File.ReadAllBytes(target).AsSpan().SequenceEqual(File.ReadAllBytes(PtBrPack));
+            }
+            catch { return false; }
+        }
+
+        public string InstallPtBr()
+        {
+            try
+            {
+                if (!PtBrPackAvailable) return Loc.T("Falta local-assets/ptbr/__PACK__.gfa junto al port.", "local-assets/ptbr/__PACK__.gfa is missing from the port.",
+                                                     "Falta local-assets/ptbr/__PACK__.gfa no port.");
+                string target = MessagePack();
+                if (target == null || !File.Exists(target)) return Loc.T("No se encuentra files/env/Message/English_USA/__PACK__.gfa en la carpeta del juego.",
+                                                                         "files/env/Message/English_USA/__PACK__.gfa was not found in the game folder.",
+                                                                         "Não foi possível encontrar files/env/Message/English_USA/__PACK__.gfa na pasta do jogo.");
+                if (!File.Exists(target + ".bak")) File.Copy(target, target + ".bak");
+                File.Copy(PtBrPack, target, true);
+                return null;
+            }
+            catch (Exception ex) { return ex.Message; }
+        }
+
+        public string RestoreOriginalPack()
+        {
+            try
+            {
+                string target = MessagePack();
+                if (target != null && File.Exists(target + ".bak"))
+                {
+                    File.Copy(target + ".bak", target, true);
+                    File.Delete(target + ".bak");
+                }
+                return null;
+            }
+            catch (Exception ex) { return ex.Message; }
+        }
+
         // ---- partidas ----
 
         public string SaveDir()

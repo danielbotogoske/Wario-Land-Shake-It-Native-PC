@@ -34,7 +34,8 @@ namespace WarioLauncher.UI
 
         public MainWindow()
         {
-            Loc.English = Ls.Get("lang", "en") == "en";
+            string savedLang = Ls.Get("lang", "en");
+            Loc.Lang = savedLang == "es" || savedLang == "pt" ? savedLang : "en";
             Title = "Wario Land: Shake It! — WarioRecomp v" + _port.CodeVersion + " by Santiago109";
             Width = 1100;
             Height = 720;
@@ -108,14 +109,14 @@ namespace WarioLauncher.UI
             // Idioma del lanzador, siempre disponible (tambien durante la instalacion).
             var lang = new Button
             {
-                Content = Loc.English ? "🌐  English  →  Español" : "🌐  Español  →  English", Height = 34, FontSize = 12,
+                Content = "🌐  " + Loc.LangName(Loc.Lang) + "  →  " + Loc.LangName(Loc.NextLang(Loc.Lang)), Height = 34, FontSize = 12,
                 HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Center,
                 VerticalContentAlignment = VerticalAlignment.Center, CornerRadius = new CornerRadius(0),
             };
             lang.Click += (s, e) =>
             {
-                Loc.English = !Loc.English;
-                Ls.Set("lang", Loc.English ? "en" : "es");
+                Loc.Lang = Loc.NextLang(Loc.Lang);
+                Ls.Set("lang", Loc.Lang);
                 int page = _page;
                 Dispatcher.UIThread.Post(() => { BuildShell(); ShowPage(page); });
             };
@@ -492,10 +493,14 @@ namespace WarioLauncher.UI
             }));
 
             p.Section(Loc.T("Idioma", "Language"));
-            var langs = new[] { new Choice("English", "en"), new Choice("Español", "es"), new Choice("Français", "fr") };
+            var langs = new[] { new Choice("English", "en"), new Choice("Español", "es"), new Choice("Français", "fr"), new Choice("Português (Brasil)", "pt-br") };
             string lang = Cfg.GetString("game", "language", "en");
+            if (lang == "en" && _port.PtBrInstalled()) lang = "pt-br";
             p.Row(Loc.T("Idioma del juego", "Game language"), Combo(langs, langs.FirstOrDefault(c => (string)c.Value == lang) ?? langs[0],
-                v => Write(t => t.SetString("game", "language", (string)v))));
+                v => SetGameLanguage((string)v)),
+                Loc.T("Português (Brasil) instala la traducción de los textos sobre el inglés del juego.",
+                      "Português (Brasil) installs the translated texts over the game's English ones.",
+                      "Português (Brasil) instala os textos traduzidos por cima do inglês do jogo."));
 
             p.Section(Loc.T("Intro", "Intro"));
             p.Row(Loc.T("Video de introducción", "Opening movie"), IntroCombo());
@@ -522,16 +527,37 @@ namespace WarioLauncher.UI
             return p;
         }
 
+        // "pt-br" no es un idioma del runtime: deja el juego en ingles y cambia el paquete de mensajes por el traducido.
+        private void SetGameLanguage(string value)
+        {
+            string err = null;
+            if (value == "pt-br")
+            {
+                err = _port.InstallPtBr();
+                if (err == null) Write(t => t.SetString("game", "language", "en"));
+            }
+            else
+            {
+                err = _port.RestoreOriginalPack();
+                if (err == null) Write(t => t.SetString("game", "language", value));
+            }
+            if (err != null)
+            {
+                _ = Dialogs.Info(this, Loc.T("No se pudo cambiar el idioma del juego:\n", "Could not change the game language:\n", "Não foi possível mudar o idioma do jogo:\n") + err);
+                Reshow(GamePage);
+            }
+        }
+
         private Control BuildAdvanced()
         {
             var p = new Page();
             p.Header(Loc.T("Avanzado", "Advanced"), Loc.T("Opciones del lanzador, archivos y diagnóstico.", "Launcher options, files and diagnostics."));
             p.Section(Loc.T("Lanzador", "Launcher"));
-            var langs = new[] { new Choice("Español", "es"), new Choice("English", "en") };
-            p.Row(Loc.T("Idioma del lanzador", "Launcher language"), Combo(langs, langs[Loc.English ? 1 : 0], v =>
+            var langs = new[] { new Choice("Español", "es"), new Choice("English", "en"), new Choice("Português (Brasil)", "pt") };
+            p.Row(Loc.T("Idioma del lanzador", "Launcher language"), Combo(langs, langs.First(c => (string)c.Value == Loc.Lang), v =>
             {
                 Ls.Set("lang", (string)v);
-                Loc.English = (string)v == "en";
+                Loc.Lang = (string)v;
                 Dispatcher.UIThread.Post(() => { BuildShell(); ShowPage(AdvancedPage); });
             }));
             p.Check(Loc.T("Cerrar el lanzador al iniciar el juego", "Close the launcher when the game starts"), Ls.GetBool("close_on_start", false),
@@ -628,7 +654,8 @@ namespace WarioLauncher.UI
             if (_port.Root != null && !_port.IsInstalled()) { if (_page != InstallPage) ShowPage(InstallPage); InstallFlow(); return; }
             if (!_port.GameBuilt)
             {
-                await Dialogs.Info(this, Loc.T("No se encuentra " + Platform.GameExeName + " junto al lanzador.", Platform.GameExeName + " was not found next to the launcher."));
+                await Dialogs.Info(this, Loc.T("No se encuentra " + Platform.GameExeName + " junto al lanzador.", Platform.GameExeName + " was not found next to the launcher.",
+                    "Não foi possível encontrar " + Platform.GameExeName + " junto ao lançador."));
                 return;
             }
             Cfg.Reload();
