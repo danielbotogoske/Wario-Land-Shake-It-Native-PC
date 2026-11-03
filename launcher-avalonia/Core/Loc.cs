@@ -15,9 +15,28 @@ namespace WarioLauncher.Core
 
         public static bool PtBr => Lang == "pt";
 
-        public static string NextLang(string lang) => lang == "en" ? "es" : lang == "es" ? "pt" : "en";
+        // Registro de idiomas del lanzador: para anadir uno, agregarlo aqui y tratarlo en T().
+        public sealed class LangInfo
+        {
+            public readonly string Code, NativeName, Tag;
+            public LangInfo(string code, string nativeName, string tag) { Code = code; NativeName = nativeName; Tag = tag; }
+            public string Label => Tag + "  ·  " + NativeName;
+            public override string ToString() => Label;
+        }
 
-        public static string LangName(string lang) => lang == "es" ? "Español" : lang == "pt" ? "Português" : "English";
+        public static readonly LangInfo[] Languages =
+        {
+            new LangInfo("es", "Español", "ES"),
+            new LangInfo("en", "English", "EN"),
+            new LangInfo("pt", "Português (Brasil)", "PT-BR"),
+        };
+
+        public static LangInfo Find(string code) => System.Array.Find(Languages, l => l.Code == code);
+
+        // Codigo guardado si existe en el registro; si no, ingles.
+        public static string Normalize(string code) => Find(code)?.Code ?? "en";
+
+        public static string LangName(string code) => (Find(code) ?? Find("en")).NativeName;
 
         public static string T(string es, string en, string pt = null)
         {

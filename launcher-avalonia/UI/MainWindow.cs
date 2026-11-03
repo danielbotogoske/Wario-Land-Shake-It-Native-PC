@@ -35,7 +35,7 @@ namespace WarioLauncher.UI
         public MainWindow()
         {
             string savedLang = Ls.Get("lang", "en");
-            Loc.Lang = savedLang == "es" || savedLang == "pt" ? savedLang : "en";
+            Loc.Lang = Loc.Normalize(savedLang);
             Title = "Wario Land: Shake It! — WarioRecomp v" + _port.CodeVersion + " by Santiago109";
             Width = 1100;
             Height = 720;
@@ -107,15 +107,16 @@ namespace WarioLauncher.UI
                 Foreground = WarioTheme.Muted, FontSize = 11.5, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 6, 0, 6),
             });
             // Idioma del lanzador, siempre disponible (tambien durante la instalacion).
-            var lang = new Button
+            var lang = new ComboBox
             {
-                Content = "🌐  " + Loc.LangName(Loc.Lang) + "  →  " + Loc.LangName(Loc.NextLang(Loc.Lang)), Height = 34, FontSize = 12,
-                HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Center,
+                ItemsSource = Loc.Languages, SelectedItem = Loc.Find(Loc.Lang), Height = 34, FontSize = 12,
+                HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Left,
                 VerticalContentAlignment = VerticalAlignment.Center, CornerRadius = new CornerRadius(0),
             };
-            lang.Click += (s, e) =>
+            lang.SelectionChanged += (s, e) =>
             {
-                Loc.Lang = Loc.NextLang(Loc.Lang);
+                if (!(lang.SelectedItem is Loc.LangInfo li) || li.Code == Loc.Lang) return;
+                Loc.Lang = li.Code;
                 Ls.Set("lang", Loc.Lang);
                 int page = _page;
                 Dispatcher.UIThread.Post(() => { BuildShell(); ShowPage(page); });
@@ -553,7 +554,7 @@ namespace WarioLauncher.UI
             var p = new Page();
             p.Header(Loc.T("Avanzado", "Advanced"), Loc.T("Opciones del lanzador, archivos y diagnóstico.", "Launcher options, files and diagnostics."));
             p.Section(Loc.T("Lanzador", "Launcher"));
-            var langs = new[] { new Choice("Español", "es"), new Choice("English", "en"), new Choice("Português (Brasil)", "pt") };
+            var langs = Loc.Languages.Select(l => new Choice(l.NativeName, l.Code)).ToArray();
             p.Row(Loc.T("Idioma del lanzador", "Launcher language"), Combo(langs, langs.First(c => (string)c.Value == Loc.Lang), v =>
             {
                 Ls.Set("lang", (string)v);
