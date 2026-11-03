@@ -210,7 +210,7 @@ namespace WarioLauncher.UI
             try
             {
                 if (File.Exists(_port.StatusFile)) File.Delete(_port.StatusFile);
-                _build = Process.Start(Platform.BuildProcess(_port.Root, quick, Loc.English));
+                _build = Process.Start(Platform.BuildProcess(_port.Root, quick, Loc.BuildLang));
                 if (_build == null) return;
                 _build.EnableRaisingEvents = true;
                 _build.Exited += (s, e) => Dispatcher.UIThread.Post(BuildFinished);
@@ -290,7 +290,8 @@ namespace WarioLauncher.UI
             if (json == null) { await Dialogs.Info(this, Loc.T("No se pudo consultar las actualizaciones (¿sin internet?).", "Could not check for updates (offline?).")); return; }
             Version remote = Port.Ver(Port.JsonField(json, "version"));
             if (remote <= _port.CodeVersion) { await Dialogs.Info(this, Loc.T("Ya tienes la última versión (", "You have the latest version (") + _port.CodeVersion + ")."); return; }
-            string notes = Port.JsonField(json, Loc.English ? "notes_en" : "notes_es");
+            string notes = Port.JsonField(json, Loc.Lang == "es" ? "notes_es" : Loc.Lang == "pt" ? "notes_pt" : "notes_en");
+            if (string.IsNullOrEmpty(notes) && Loc.Lang == "pt") notes = Port.JsonField(json, "notes_en");
             if (!await Dialogs.Ask(this, Loc.T("Versión nueva: ", "New version: ") + remote + " (" + Loc.T("actual ", "current ") + _port.CodeVersion + ")" +
                     (string.IsNullOrEmpty(notes) ? "" : "\n\n" + notes) + "\n\n" + Loc.T("¿Descargar y actualizar?", "Download and update?"))) return;
             if (_running != null && !_running.HasExited) { await Dialogs.Info(this, Loc.T("Cierra el juego antes de actualizar.", "Close the game before updating.")); return; }

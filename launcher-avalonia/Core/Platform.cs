@@ -31,14 +31,14 @@ namespace WarioLauncher.Core
         public static string LauncherFileName => IsWindows ? "WarioLauncher.exe" : "WarioLauncher";
 
         // Proceso que ejecuta el script de compilacion. args: opciones comunes ya traducidas.
-        public static ProcessStartInfo BuildProcess(string root, bool quick, bool english)
+        public static ProcessStartInfo BuildProcess(string root, bool quick, string lang)
         {
             string script = Path.Combine(root, "tools", BuildScriptName);
             ProcessStartInfo psi;
             if (IsWindows)
             {
                 string ps = Path.Combine(Environment.SystemDirectory, "WindowsPowerShell", "v1.0", "powershell.exe");
-                string args = "-NoProfile -ExecutionPolicy Bypass -File \"" + script + "\" -SkipRun -Lang " + (english ? "en" : "es");
+                string args = "-NoProfile -ExecutionPolicy Bypass -File \"" + script + "\" -SkipRun -Lang " + lang;
                 if (quick) args += " -SkipTools -SkipTranslate";
                 psi = new ProcessStartInfo(ps, args);
             }
@@ -47,7 +47,7 @@ namespace WarioLauncher.Core
                 psi = new ProcessStartInfo("bash");
                 psi.ArgumentList.Add(script);
                 psi.ArgumentList.Add("--lang");
-                psi.ArgumentList.Add(english ? "en" : "es");
+                psi.ArgumentList.Add(lang);
                 if (quick) psi.ArgumentList.Add("--skip-translate");
             }
             psi.WorkingDirectory = root;

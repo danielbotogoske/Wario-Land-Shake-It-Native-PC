@@ -137,8 +137,10 @@ namespace WarioLauncher.Core
             try
             {
                 string target = MessagePack();
-                if (target == null || !PtBrPackAvailable || !File.Exists(target) || !File.Exists(target + ".bak")) return false;
-                return File.ReadAllBytes(target).AsSpan().SequenceEqual(File.ReadAllBytes(PtBrPack));
+                if (target == null || !File.Exists(target) || !File.Exists(target + ".bak")) return false;
+                // Con .bak, un paquete distinto del original es una traduccion instalada (aunque el
+                // paquete del port se haya actualizado despues).
+                return !File.ReadAllBytes(target).AsSpan().SequenceEqual(File.ReadAllBytes(target + ".bak"));
             }
             catch { return false; }
         }
@@ -153,7 +155,15 @@ namespace WarioLauncher.Core
                 if (target == null || !File.Exists(target)) return Loc.T("No se encuentra files/env/Message/English_USA/__PACK__.gfa en la carpeta del juego.",
                                                                          "files/env/Message/English_USA/__PACK__.gfa was not found in the game folder.",
                                                                          "Não foi possível encontrar files/env/Message/English_USA/__PACK__.gfa na pasta do jogo.");
-                if (!File.Exists(target + ".bak")) File.Copy(target, target + ".bak");
+                if (!File.Exists(target + ".bak"))
+                {
+                    // Sin .bak, un paquete ya traducido no es el original: no guardarlo como copia.
+                    if (File.ReadAllBytes(target).AsSpan().SequenceEqual(File.ReadAllBytes(PtBrPack)))
+                        return Loc.T("El paquete ya está traducido pero falta __PACK__.gfa.bak; restaura el original del disco.",
+                                     "The pack is already translated but __PACK__.gfa.bak is missing; restore the original from the disc.",
+                                     "O pacote já está traduzido mas falta __PACK__.gfa.bak; restaure o original do disco.");
+                    File.Copy(target, target + ".bak");
+                }
                 File.Copy(PtBrPack, target, true);
                 return null;
             }

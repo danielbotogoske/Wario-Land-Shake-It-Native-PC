@@ -38,10 +38,13 @@ namespace WarioLauncher.Core
 
         public static string LangName(string code) => (Find(code) ?? Find("en")).NativeName;
 
+        // El script de compilacion solo habla es/en; el portugues usa el ingles.
+        public static string BuildLang => Lang == "es" ? "es" : "en";
+
         public static string T(string es, string en, string pt = null)
         {
             if (Lang == "en") return en;
-            if (Lang == "pt") return pt ?? LocPtBr.Get(en) ?? es;
+            if (Lang == "pt") return pt ?? LocPtBr.Get(en) ?? en;
             return es;
         }
     }
