@@ -1,0 +1,13 @@
+# Build outputs and local install state
+Play/
+game/
+generated/
+toolchain/
+nb-win/
+build-logs/
+fw/Dependencies/
+fw/Launcher/artifacts/
+
+# .NET build outputs
+bin/
+obj/
